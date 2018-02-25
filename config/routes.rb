@@ -1,3 +1,3 @@
 Rails.application.routes.draw do
-  resources :shipments, :only => [:create]
+  resources :messages, :only => [:create]
 end
