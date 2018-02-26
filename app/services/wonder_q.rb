@@ -23,6 +23,8 @@ class WonderQ
     message = Message.find(message_id)
     if message.being_read
       message.destroy
+    else
+      false
     end
   end
 
