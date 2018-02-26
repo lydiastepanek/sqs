@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180225213326) do
+ActiveRecord::Schema.define(version: 20180226013603) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(version: 20180225213326) do
     t.string   "payload"
     t.datetime "read_at"
     t.boolean  "being_read", default: false
+    t.integer  "reader_id"
   end
 
 end

@@ -2,8 +2,8 @@ require "spec_helper"
 
 describe WonderQ do
   before do
-    @client_one = Client.new
-    @client_two = Client.new
+    @client_one = Client.create
+    @client_two = Client.create
     @payload = { "data" => "Test data" }
     @processing_time_limit = 1.day
   end
@@ -87,6 +87,19 @@ describe WonderQ do
       Timecop.freeze(DateTime.now.utc + @processing_time_limit) do
         messages_batch_two = @client_two.read_messages(1, @processing_time_limit)
         expect(messages_batch_two.first.id).to eq(message_id)
+      end
+    end
+
+    it "cannot notify WonderQ that it has processed the message" do
+      message_id = @client_one.write_message(@payload)
+      @client_one.read_messages(1, @processing_time_limit)
+
+      Timecop.freeze(DateTime.now.utc + @processing_time_limit) do
+        @client_two.read_messages(1, @processing_time_limit)
+        processed = @client_one.mark_processed(message_id)
+
+        expect(processed).to be(false)
+        expect(Message.where(:id => message_id).count).to be(1)
       end
     end
   end

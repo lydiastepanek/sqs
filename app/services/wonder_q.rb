@@ -4,13 +4,14 @@ class WonderQ
     message.id
   end
 
-  def self.read_messages(count, processing_time_limit)
+  def self.read_messages(count, processing_time_limit, client_id)
     self.check_for_overdue_messages(processing_time_limit)
     messages = Message.where(:being_read => false).last(count)
     begin
       messages.each do |message|
         message.read_at = Time.now.utc
         message.being_read = true
+        message.reader_id = client_id
         message.save!
       end
     rescue
@@ -19,9 +20,9 @@ class WonderQ
     messages
   end
 
-  def self.mark_processed(message_id)
+  def self.mark_processed(message_id, client_id)
     message = Message.find(message_id)
-    if message.being_read
+    if message.being_read && message.reader_id == client_id
       message.destroy
     else
       false
