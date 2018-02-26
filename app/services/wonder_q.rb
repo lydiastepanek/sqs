@@ -29,6 +29,13 @@ class WonderQ
     end
   end
 
+  def self.current_state
+    Message.all.map do |msg|
+      p msg.inspect
+    end
+    false
+  end
+
   private
 
   def self.check_for_overdue_messages(processing_time_limit)
