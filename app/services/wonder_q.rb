@@ -1,30 +1,38 @@
 class WonderQ
-  def initialize(processing_time_limit)
-    @processing_time_limit = processing_time_limit || 1.day
-  end
-
-  def write_message(payload)
-    message = Message.create(payload)
+  def self.write_message(payload)
+    message = Message.create(:payload => payload.to_json)
     message.id
   end
 
-  def read_messages(count)
-    overdue_messages = Message.where { |msg| msg.being_read && msg.read_at > @processing_time_limit.ago }
-    overdue_messages.all.map { |msg| msg.being_read = false; msg.save! }
-    messages = Message.last(count)
+  def self.read_messages(count, processing_time_limit)
+    self.check_for_overdue_messages(processing_time_limit)
+    messages = Message.where(:being_read => false).last(count)
     begin
       messages.each do |message|
-        message.read_at = Time.now
+        message.read_at = Time.now.utc
         message.being_read = true
         message.save!
       end
     rescue
       false
     end
+    messages
   end
 
-  def mark_processed(message_id)
-    remote_message = RemoteMessage.find(message_id)
-    remote_message.destroy
+  def self.mark_processed(message_id)
+    message = Message.find(message_id)
+    if message.being_read
+      message.destroy
+    end
+  end
+
+  private
+
+  def self.check_for_overdue_messages(processing_time_limit)
+    overdue_messages = Message.where(:being_read => true).where("read_at < ?", processing_time_limit.ago)
+    overdue_messages.each do |msg|
+      msg.being_read = false
+      msg.save!
+    end
   end
 end
