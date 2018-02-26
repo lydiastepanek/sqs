@@ -16,3 +16,10 @@ bundle install
 bundle exec rake db:create db:migrate
 rails server
 ```
+
+To see current state, run:
+```
+# make sure server is running as shown above
+rails console
+WonderQ.current_state
+```
