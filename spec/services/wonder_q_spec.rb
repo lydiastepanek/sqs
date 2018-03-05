@@ -73,11 +73,14 @@ describe WonderQ do
   end
 
   context "when a consumer does NOT notify WonderQ that it has processed a message within the configured amount of time" do
-    it "allows the message to remain in the db after the processing time limit has passed" do
+    it "allows the message to remain in a 'being_read' state as long as no other clients have requested to read it" do
       message_id = @client_one.write_message(@payload)
       @client_one.read_messages(1, @processing_time_limit)
 
-      expect(Message.where(:id => message_id).count).to be(1)
+      Timecop.freeze(DateTime.now.utc + @processing_time_limit) do
+        message = Message.where(:id => message_id).first
+        expect(message.being_read).to eq(true)
+      end
     end
 
     it "makes the message available to any consumer requesting again" do
